@@ -1,3 +1,35 @@
+###Django-invitations - Extended to allow for user code
+
+This is a fork of the original django-invitations app developed by bee-keeper
+https://github.com/bee-keeper/django-invitations
+
+The app was modified to allow a code to be logged when an invitation has been created.
+This code will show up in the invitations table of the database and can be coupled to the user name like for example as follows:
+
+In models.py add something like:
+
+```python
+class RespondentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    last_task = models.DateTimeField(default='2000-01-01 00:01', blank=True)
+    respondent_id = models.CharField(max_length=20, default="000", blank=True)
+    respondent_email = models.EmailField(max_length=100, default="none@nothing.com", blank=True)
+
+def create_respondent(sender, **kwargs):
+    user = kwargs["instance"]
+    if kwargs["created"]:
+        respondent_profile = RespondentProfile(user=user)
+        invite = Invitation.objects.get(email=user.email)
+        resp_id = invite.respondent_id
+        repsondent_profile.respondent_email = user.email
+        respondent_profile.respondent_id= resp_id
+        respondent_profile.save()
+
+post_save.connect(create_respondent, sender=User)
+```
+
+###Original readme here:
+
 ##Django-invitations - Generic invitations app
 
 [![Build Status](https://travis-ci.org/bee-keeper/django-invitations.svg?branch=master)](https://travis-ci.org/bee-keeper/django-invitations)
